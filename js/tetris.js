@@ -2,7 +2,9 @@ var COLS = 10, ROWS = 20;
 var board = [];
 var lose;
 var interval;
+var pellets = [];
 var current, currentX, currentY;
+var mode = 'play';
 var shapes = [
     [ 1, 1, 1, 1 ],
     [ 1, 1, 1, 0,
@@ -53,28 +55,59 @@ function init() {
 }
 
 function tick() {
-    if ( valid( 0, 1 ) ) {
-        ++currentY;
-    }
-    else {
-        freeze();
-        clearLines();
-        if (lose) {
-            newGame();
-            return false;
-        }    
-        newShape();
+    if ( mode == 'play' ) {
+        if ( valid( 0, 1 ) ) {
+            ++currentY;
+        }
+        else {
+            startFreeze();
+            mode = 'freeze';
+            if (lose) {
+                newGame();
+                return false;
+            }
+        }
+    } else if ( mode == 'freeze' ) {
+        for ( var i in pellets ) {
+            var pellet = pellets[i];
+            var nextY = pellet.y + 1;
+
+            if ( (nextY < ROWS) && (board[ nextY ][ pellet.x ] === 0) ) {
+                pellet.y = nextY;
+            } else {
+                board[ pellet.y ][ pellet.x ] = pellet.value;
+                pellet.remove = true;
+            }
+        }
+
+        pellets = pellets.filter(function(p) { return !p.remove; });
+
+        if ( pellets.length == 0 ) {
+            clearLines();
+            newShape();
+            mode = 'play';
+        }
     }
 }
 
-function freeze() {
+function startFreeze() {
     for ( var y = 0; y < 4; ++y ) {
         for ( var x = 0; x < 4; ++x ) {
             if ( current[ y ][ x ] ) {
-                board[ y + currentY ][ x + currentX ] = current[ y ][ x ];
+                pellets.unshift({
+                    x: x + currentX,
+                    y: y + currentY,
+                    value: current[ y ][ x ],
+                    remove: false
+                });
+                current[y][x] = 0;
             }
         }
     }
+}
+
+function resumePlay() {
+    mode = 'play';
 }
 
 function rotate( current ) {

@@ -23,6 +23,13 @@ function render() {
 
     ctx.fillStyle = 'red';
     ctx.strokeStyle = 'black';
+
+    for ( var i in pellets ) {
+        var pellet = pellets[i];
+        ctx.fillStyle = colors[ pellet.value - 1 ];
+        drawBlock( pellet.x, pellet.y );
+    }
+
     for ( var y = 0; y < 4; ++y ) {
         for ( var x = 0; x < 4; ++x ) {
             if ( current[ y ][ x ] ) {
